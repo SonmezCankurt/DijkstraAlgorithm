@@ -6,25 +6,30 @@ namespace DijkstraAlgorithmProject
 {
     class DijkstraAlgorithm
     {
-        public Point FindUnexplored(List<Point> points)
+        public Node FindUndiscoveredMinValue(List<Node> nodes)
         {
-            Point p = null;
+            Node p = null;
 
-            foreach (var point in points)
+            int val = int.MaxValue;
+
+            foreach (var node in nodes)
             {
-                if (!point.explored)
+                if (!node.discorvered)
                 {
-                    p = point;
-                    break;
+                    if(node.pathDistance <= val)
+                    {
+                        val = node.pathDistance;
+                        p = node;
+                    }
                 }
             }
 
             return p;
         }
 
-        public string PrintShortestPath(Point end)
+        public string PrintShortestPath(Node end)
         {
-            Point p = end;
+            Node p = end;
             StringBuilder sb = new StringBuilder();
 
             do
@@ -32,7 +37,7 @@ namespace DijkstraAlgorithmProject
                 sb.Insert(0, p.name);
 
                 if (p.parent != null)
-                    sb.Insert(0, $" --{p.neighbors[p.parent]}--> ");
+                    sb.Insert(0, $" --({p.neighbors[p.parent]})--> ");
 
                 p = p.parent;
             }
@@ -41,29 +46,36 @@ namespace DijkstraAlgorithmProject
             return sb.ToString();
         }
 
-        public void FindShortestPath(Point start, Point end, List<Point> points)
+
+        public void FindShortestPath(Node start, Node end, List<Node> nodes)
         {
             start.pathDistance = 0;
 
-            for (int i = 0; i < points.Count; i++)
+            for (int i = 0; i < nodes.Count; i++)
             {
 
-                Point point = FindUnexplored(points);
+                Node node = FindUndiscoveredMinValue(nodes);
 
-                if (point != null)
+                if (node != null)
                 {
-                    foreach (var neighbor in point.neighbors.Keys)
+                    if (node == end)
+                        break;
+
+                    foreach (var neighbor in node.neighbors.Keys)
                     {
-                        int altDistance = point.neighbors[neighbor] + point.pathDistance;
+                        if (node.parent == neighbor)
+                            continue;
+
+                        int altDistance = node.neighbors[neighbor] + node.pathDistance;
 
                         if (altDistance < neighbor.pathDistance)
                         {
                             neighbor.pathDistance = altDistance;
-                            neighbor.parent = point;
+                            neighbor.parent = node;
                         }
                     }
 
-                    point.explored = true;
+                    node.discorvered = true;
 
                 }
                 else
@@ -74,23 +86,27 @@ namespace DijkstraAlgorithmProject
 
 
             Console.WriteLine("Shortest Path : " + PrintShortestPath(end));
+            Console.WriteLine("Total Distance : " + end.pathDistance);
 
         }
 
         public void DoExercise()
         {
-            Point A = new Point("A");
-            Point B = new Point("B");
-            Point C = new Point("C");
-            Point D = new Point("D");
-            Point E = new Point("E");
+            Node A = new Node("A");
+            Node B = new Node("B");
+            Node C = new Node("C");
+            Node D = new Node("D");
+            Node E = new Node("E");
 
-            List<Point> points = new List<Point>(5);
-            points.Add(A);
-            points.Add(B);
-            points.Add(C);
-            points.Add(D);
-            points.Add(E);
+            List<Node> nodes = new List<Node>(5);
+
+
+            nodes.Add(D);
+            nodes.Add(B);
+            nodes.Add(A);
+            nodes.Add(E);
+            nodes.Add(C);
+
 
             A.AddNeighbor(B, 2);
             A.AddNeighbor(C, 4);
@@ -101,27 +117,27 @@ namespace DijkstraAlgorithmProject
             D.AddNeighbor(E, 3);
 
             DijkstraAlgorithm dijkstra = new DijkstraAlgorithm();
-            dijkstra.FindShortestPath(A, E, points);
+            dijkstra.FindShortestPath(A, E, nodes);
         }
     }
 
-    class Point
+    class Node
     {
         public string name;
-        public Dictionary<Point, int> neighbors = new Dictionary<Point, int>();
-        public bool explored;
+        public Dictionary<Node, int> neighbors = new Dictionary<Node, int>();
+        public bool discorvered;
         public int pathDistance;
-        public Point parent;
+        public Node parent;
 
-        public Point(string name)
+        public Node(string name)
         {
             this.name = name;
-            explored = false;
+            discorvered = false;
             pathDistance = int.MaxValue;
             parent = null;
         }
 
-        public void AddNeighbor(Point neighbor, int distance)
+        public void AddNeighbor(Node neighbor, int distance)
         {
             neighbors[neighbor] = distance;
             neighbor.neighbors[this] = distance;
